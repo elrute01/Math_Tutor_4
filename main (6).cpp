@@ -1,4 +1,4 @@
-/********************************************************************
+/*
 Course Section: 1 - 9:00am
 Programmers: Ellie Ruterbories
 Program: MathTutor 
@@ -8,7 +8,7 @@ Description: This math tutor is fun and easy. It gives random questions
 to the user and makes sure the answer is correct. If incorrect, the 
 correct answer is given. It also gives the option to continue with another question
 of not. At the end of the program there is a summary of all of the questions and answers.
-/*********************************************************************
+*/
 
 #include <iostream>
 #include <string>
