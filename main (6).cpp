@@ -7,8 +7,10 @@ Description: This math tutor is fun and easy. It gives random questions
 to the user and makes sure the answer is correct. If incorrect, the 
 correct answer is given and the option to have another question is given.
 There are levels and every 3 questions answered correctly the level goes up.
+At the end of the game, the user is given a report of the level, question, and 
+how many  attempts were used per question. There is also a report of the total
+questions, total correct, total incorrect, and the average correct answers.
 */
-
 
 #include <iostream>
 #include <string>
@@ -37,6 +39,14 @@ struct MathQuestion {
     char mathSymbol;
 };
 
+// Structure to store the question details for the summary
+struct QuestionAttempt {
+    int level;
+    string question;
+    int attempts;
+    bool correct;  // To track if the question was answered correctly
+};
+
 // Function to generate random numbers based on the current level
 int getRandomNumber(int level) {
     // Difficulty increases as the level increases
@@ -57,7 +67,7 @@ void printWelcomeMessage() {
     cout << "  | |  | | (_| | |_| | | |     | || |_| | || (_) | |" << endl;
     cout << "  |_|  |_|\\__,_|\\__|_| |_|   |_| \\__,_|\\__\\___/|_|" << endl;
     cout << "*********************************************************" << endl;
-    cout << "       Welcome to Elise & Jacob's Silly Math Tutor!" << endl;
+    cout << "       Welcome to Elise's Silly Math Tutor!" << endl;
     cout << "*********************************************************" << endl;
     cout << endl;
 }
@@ -107,9 +117,16 @@ int main() {
     string userName;
     double userAnswer;
     string userInput;
-    int correctCount = 0;  // To track number of correct answers
-    int level = 1;         // Start at level 1
-    int incorrectAttempts = 0;  // To track incorrect attempts
+    int correctCount = 0;  // To track number of correct answers for each level
+    int incorrectCount = 0;  // To track number of incorrect answers for each level
+    int totalQuestions = 0;   // To track total number of questions attempted
+    int level = 1;            // Start at level 1
+
+    // Variables to store question details for the summary
+    vector<QuestionAttempt> summaryAttempts;
+
+    // To track the total number of correct answers across all levels
+    int totalCorrectAnswers = 0;
 
     srand(static_cast<unsigned int>(time(0)));
 
@@ -130,21 +147,12 @@ int main() {
 
         // Generate a new question based on the current level
         MathQuestion currentQuestion = createMathQuestion(level);
-        
+
         // Store the question in the 2D vector (for this level, we store in a new row)
         if (questions.size() < level) {
             questions.push_back(vector<MathQuestion>()); // Add a new level (row)
         }
         questions[level - 1].push_back(currentQuestion); // Add the current question to the current level
-
-        // Before the for loop, declare and initialize the single-dimensional vector `row`
-        // `row` will store: [level, left number, math symbol, right number, correct answer]
-        vector<double> row;
-        row.push_back(level);                       // Store the current level
-        row.push_back(currentQuestion.leftNum);     // Store the left number
-        row.push_back(static_cast<double>(currentQuestion.mathSymbol)); // Store the ASCII value of math symbol
-        row.push_back(currentQuestion.rightNum);    // Store the right number
-        row.push_back(currentQuestion.correctAnswer); // Store the correct answer
 
         // Ask the math question
         cout << "What is " << currentQuestion.leftNum << " " 
@@ -152,7 +160,8 @@ int main() {
              << currentQuestion.rightNum << " = ? ";
 
         int attemptsLeft = 3;  // Max 3 attempts
-        bool correct = false;
+        int attempts = 0;  // To track attempts for this question
+        bool correct = false;  // To track if the user answered correctly
 
         while (attemptsLeft > 0) {
             while (!(cin >> userAnswer)) {
@@ -161,11 +170,24 @@ int main() {
                 cout << "Invalid input. Please enter a number: ";
             }
 
+            // Increment attempt count
+            attempts++;
+
             // Check if the user's answer is correct
             if (userAnswer == currentQuestion.correctAnswer) {
                 cout << "You're a genius!!" << endl;
-                correct = true;
-                correctCount++;  // Increment correct answer count
+                correct = true;  // The user answered correctly
+                correctCount++;  // Increment correct answer count for this level
+                totalCorrectAnswers++; // Increment total correct answers across all levels
+                totalQuestions++; // Increment total question count
+
+                // Store the question data for summary, including the number of attempts
+                summaryAttempts.push_back({
+                    level, 
+                    to_string(currentQuestion.leftNum) + " " + currentQuestion.mathSymbol + " " + to_string(currentQuestion.rightNum), 
+                    attempts, 
+                    correct
+                });
                 break;
             } else {
                 attemptsLeft--;
@@ -174,7 +196,16 @@ int main() {
                 } else {
                     cout << "Sorry, that's incorrect. The correct answer is: " 
                          << currentQuestion.correctAnswer << endl;
-                    incorrectAttempts++;  // Increment incorrect attempts
+                    incorrectCount++;     // Increment incorrect answer count for this level
+                    totalQuestions++; // Increment total question count
+
+                    // Store the question data for summary, including the number of attempts
+                    summaryAttempts.push_back({
+                        level, 
+                        to_string(currentQuestion.leftNum) + " " + currentQuestion.mathSymbol + " " + to_string(currentQuestion.rightNum), 
+                        attempts, 
+                        correct
+                    });
                 }
             }
         }
@@ -182,20 +213,13 @@ int main() {
         // Check if the user has answered 3 questions correctly, then level up
         if (correctCount >= 3) {
             level++;  // Level up!
-            correctCount = 0;  // Reset the correct answer count
+            correctCount = 0;  // Reset the correct answer count for next level
             cout << "Congratulations! You've leveled up to Level " << level << "!" << endl;
-        }
-        // Check if the user has been incorrect 3 times, then level down
-        if (incorrectAttempts >= 3) {
-            level--;  // Level down!
-            incorrectAttempts = 0;  // Reset incorrect attempts
-            cout << "Oops! You've been answering incorrectly. You've leveled down to Level " << level << "!" << endl;
         }
 
         // Ask if the user wants another question
         bool validInput = false;
         while (!validInput) {
-            cout << "Do you want to keep testing your skills? (y-yes | n-no): ";
             getline(cin, userInput);
 
             // Convert user input to uppercase for consistency
@@ -206,24 +230,41 @@ int main() {
             } else if (userInput == "N" || userInput == "NO") {
                 validInput = true;
             } else {
-                cout << "Invalid input. Please enter 'y' for yes or 'n' for no." << endl;
+                cout << "Do you want to continue? Please enter 'y' for yes or 'n' for no." << endl;
             }
         }
 
     } while (userInput == "Y" || userInput == "YES");
 
-    // Display all attempted questions at the end
-    cout << "Here are the questions you attempted: " << endl;
-    for (int i = 0; i < questions.size(); ++i) {
-        cout << "Level " << (i + 1) << ":" << endl;
-        for (const auto& question : questions[i]) {
-            cout << "Question: " << question.leftNum << " " << question.mathSymbol << " " 
-                 << question.rightNum << " = " << question.correctAnswer << endl;
-        }
+    // Calculate average correct percentage
+    double averageCorrect = 0.0;
+    if (totalQuestions > 0) {
+        averageCorrect = (static_cast<double>(totalCorrectAnswers) / totalQuestions) * 100;
     }
+
+    // Display the Summary Report
+    cout << "======================================" << endl;
+    cout << "        Summary Report              " << endl;
+    cout << "======================================" << endl;
+    cout << "Level       Question        Attempts" << endl;
+    cout << "——————————————————————————————————————————————" << endl;
+
+    // Display question details in the summary
+    for (const auto& attempt : summaryAttempts) {
+        cout << attempt.level << "      ";
+        cout << attempt.question;
+        // Ensure consistent formatting for number of attempts
+        cout << "        " << attempt.attempts << endl;
+    }
+
+    // Display total correct, incorrect, and average correct percentage
+    cout << "------------------------------------" << endl;
+    cout << "Total Questions: " << totalQuestions << endl;
+    cout << "Total Correct: " << totalCorrectAnswers << endl;
+    cout << "Total Incorrect: " << incorrectCount << endl;
+    cout << "Average Correct: " << averageCorrect << "%" << endl;
 
     cout << "Thanks for using the Silly Math Tutor! Come back soon!" << endl;
 
     return 0;
 }
-
