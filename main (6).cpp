@@ -11,6 +11,54 @@ using namespace std;
 //how much to increase or decrease the random number range per level
 const int LEVEL_RANGE_CHANGE = 10;
 
+void DisplayGameIntro();
+string GetUserName();
+vector<int> GenerateRandomQuestion(int mathLevel);
+bool GiveThreeAttempts(string userName, vector<int> &row);
+int GetNumericValue();
+void CheckForLevelChange(int &totalCorrect, int &totalIncorrect, int &mathLevel);
+string AskToPlayAgain(string userName);
+void DisplaySummaryReport(vector<vector<int> > &questions);
+
+int main() {
+    vector<vector<int> > questions; //vector to store the questions and answers
+    string userName = "?";
+    string userInput = "?";
+
+    int totalCorrect = 0;
+    int totalIncorrect = 0;
+    int mathLevel = 1;
+
+    bool isCorrect = false;
+
+    srand(time(0)); //seed the random method with the current time
+
+    DisplayGameIntro();
+
+    userName = GetUserName();
+
+    do {
+        // keep asking math questions until the user wants to quit
+
+        vector<int> row = GenerateRandomQuestion(mathLevel);
+        isCorrect = GiveThreeAttempts(userName, row);
+
+        (isCorrect) ? totalCorrect++ : totalIncorrect++;
+
+        questions.push_back(row);
+
+        CheckForLevelChange(totalCorrect, totalIncorrect, mathLevel);
+
+        getline(cin, userInput); // clearing the newline from the input buffer
+
+        userInput = AskToPlayAgain(userName);
+    } while (userInput == "y" || userInput == "yes");
+
+    DisplaySummaryReport(questions);
+
+    return 0;
+}
+
 void DisplayGameIntro() {
     cout << "*********************************************************" << endl;
     cout << "   __  __       _   _       _____      _   " << endl;
@@ -275,43 +323,4 @@ vector<int> GenerateRandomQuestion(int mathLevel) {
     }
 
     return {mathLevel, leftNum, mathSymbol, rightNum, correctAnswer};
-}
-
-int main() {
-    vector<vector<int> > questions; //vector to store the questions and answers
-    string userName = "?";
-    string userInput = "?";
-
-    int totalCorrect = 0;
-    int totalIncorrect = 0;
-    int mathLevel = 1;
-
-    bool isCorrect = false;
-
-    srand(time(0)); //seed the random method with the current time
-
-    DisplayGameIntro();
-
-    userName = GetUserName();
-
-    do {
-        // keep asking math questions until the user wants to quit
-
-        vector<int> row = GenerateRandomQuestion(mathLevel);
-        isCorrect = GiveThreeAttempts(userName, row);
-
-        (isCorrect) ? totalCorrect++ : totalIncorrect++;
-
-        questions.push_back(row);
-
-        CheckForLevelChange(totalCorrect, totalIncorrect, mathLevel);
-
-        getline(cin, userInput); // clearing the newline from the input buffer
-
-        userInput = AskToPlayAgain(userName);
-    } while (userInput == "y" || userInput == "yes");
-
-    DisplaySummaryReport(questions);
-
-    return 0;
 }
