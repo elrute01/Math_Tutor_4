@@ -14,8 +14,8 @@ const int LEVEL_RANGE_CHANGE = 10;
 void DisplayGameIntro();
 string GetUserName();
 vector<int> GenerateRandomQuestion(int mathLevel);
-bool GiveThreeAttempts(string userName, vector<int> &row);
 int GetNumericValue();
+bool GiveThreeAttempts(string userName, vector<int> &row);
 void CheckForLevelChange(int &totalCorrect, int &totalIncorrect, int &mathLevel);
 string AskToPlayAgain(string userName);
 void DisplaySummaryReport(vector<vector<int> > &questions);
@@ -144,6 +144,19 @@ vector<int> GenerateRandomQuestion(int mathLevel) {
     return {mathLevel, leftNum, mathSymbol, rightNum, correctAnswer};
 }
 
+// this loops until the user enters a valid numeric value and then returns the value
+int GetNumericValue() {
+    int userAnswer = 0;
+    // loop until the user enters numeric data
+    while (!(cin >> userAnswer)) {
+        cin.clear(); // clear the error flag on cin
+        // need to include the limits library to use numeric_limits
+        cin.ignore(numeric_limits<streamsize>::max(), '\n'); // ignore the last input
+        cout << "Invalid input! Please enter a number: ";
+    } // end of get userAnswer while loop
+    return userAnswer;
+}
+
 bool GiveThreeAttempts(string userName, vector<int> &row) {
     bool isCorrect = false;
     const int MAX_ATTEMPTS = 3;
@@ -193,19 +206,6 @@ bool GiveThreeAttempts(string userName, vector<int> &row) {
     cout << endl;
 
     return isCorrect;
-}
-
-// this loops until the user enters a valid numeric value and then returns the value
-int GetNumericValue() {
-    int userAnswer = 0;
-    // loop until the user enters numeric data
-    while (!(cin >> userAnswer)) {
-        cin.clear(); // clear the error flag on cin
-        // need to include the limits library to use numeric_limits
-        cin.ignore(numeric_limits<streamsize>::max(), '\n'); // ignore the last input
-        cout << "Invalid input! Please enter a number: ";
-    } // end of get userAnswer while loop
-    return userAnswer;
 }
 
 void CheckForLevelChange(int &totalCorrect, int &totalIncorrect, int &mathLevel) {
